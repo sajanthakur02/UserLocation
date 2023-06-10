@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <form onsubmit="event.preventDefault(); calculateDistance();">
+        <input type="text" id="staticLatitude" placeholder="Enter static latitude" />
+        <input type="text" id="staticLongitude" placeholder="Enter static longitude" />
+        <input type="submit" value="Calculate Distance" />
+    </form>
+    <p id="status"></p>
+    <p id="current-location"></p>
+    <p id="static-location"></p>
+    <p id="distance"></p>
+
+    <script>
+        function geoFindMe() {
+            const status = document.querySelector("#status");
+            const currentLocation = document.querySelector("#current-location");
+
+            function success(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                status.textContent = "";
+                currentLocation.textContent = `Your current location: ${latitude}, ${longitude}`;
+            }
+
+            function error() {
+                status.textContent = "Unable to retrieve your location";
+            }
+
+            if (!navigator.geolocation) {
+                status.textContent = "Geolocation is not supported by your browser";
+            } else {
+                status.textContent = "Locating...";
+                navigator.geolocation.getCurrentPosition(success, error);
+            }
+        }
+
+        function calculateDistance() {
+            const userLatitude = document.querySelector("#staticLatitude").value;
+            const userLongitude = document.querySelector("#staticLongitude").value;
+            const currentLocationText = document.querySelector("#current-location").textContent;
+
+            if (!currentLocationText) {
+                alert("Please wait until your current location is retrieved.");
+                return;
+            }
+            const currentLatitude = parseFloat(currentLocationText.split(":")[1]);
+            const currentLongitude = parseFloat(currentLocationText.split(":")[2]);
+            const distance = calculateDistanceBetweenCoordinates(currentLatitude, currentLongitude, parseFloat(userLatitude), parseFloat(userLongitude));
+            document.querySelector("#distance").textContent = `Distance: ${distance.toFixed(2)} kilometers`;
+        }
+
+        function calculateDistanceBetweenCoordinates(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the Earth in kilometers
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+
+            return distance;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        document.addEventListener("DOMContentLoaded", geoFindMe);
+    </script>
+</body>
+</html>
